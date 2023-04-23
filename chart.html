@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>K6 Stress Test Chart</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      width: 90vw;;
+      margin: auto;
+    }
+    .chart-container {
+      position: relative;
+      width: 100%;
+      height: 50vh;
+      min-height: 300px;
+    }
+    span.msg {
+      font-weight: bold; color: brown;
+    }
+    span.times {
+      font-size: 0.8em; color: #333;
+    }
+    #testTime {
+      font-size: 0.8em; color: #333; text-align: right; margin-right: 12px;
+    }
+  </style>
+</head>
+
+<body>
+  <div>
+    <h2>Stress Test</h2>
+    <div id="testTime"></div>
+  </div>
+  <div class="chart-container">
+    <canvas id="myChart"></canvas>
+  </div>
+  <ul id="errList">
+  </ul>
+  <script>
+    function drawChart(data) {
+      const chart = new Chart(document.getElementById('myChart').getContext('2d'), {
+        type: 'line',
+        data: {
+          labels: data.labels,
+          datasets: data.datasets
+        },
+        options: {
+          animation: false,
+          maintainAspectRatio: false,
+          scales: {
+            y1: { position: 'left', stack: 'left', stackWeight: 4, title: { display: true, text: 'req/s' } },
+            y2: { position: 'right', grid: { display: false }, title: { display: true, text: 'ms' } },
+          }
+        }
+      });
+    }
+    function listErrors(errors) {
+      const ul = document.getElementById('errList');
+      const stats = {};
+      errors.forEach(e => {
+        const [time, msg] = e.split('\t');
+        const key = msg.replace(/tcp ([\d.]+):(\d+)->/, "tcp $1:*->")
+        if (stats[key]) {
+          stats[key].push(time);
+        } else {
+          stats[key] = [time];
+        }
+      });
+      Object.keys(stats).forEach(msg => {
+        const li = document.createElement('li');
+        li.innerHTML = `<span class=msg>${msg}</span><br /><span class=times>${stats[msg].join(',')}</span>`;
+        ul.appendChild(li);
+      });
+    }
+    function setChartTitle(title, testTime) {
+      document.querySelector('h2').innerText = title;
+      document.getElementById('testTime').innerText = testTime;
+    }
+  </script>
+  <script></script>
+
+</body>
+
+</html>
